@@ -398,9 +398,19 @@ public class SoftResToolWindow {
 
     protected static JSONObject readCookies() throws IOException {
         try (FileReader reader = new FileReader(COOKIE_FILE)) {
-            JSONArray array = new JSONArray(new JSONTokener(reader));
+            JSONTokener tokener = new JSONTokener(reader);
+            Object json = tokener.nextValue();
+
             JSONObject result = new JSONObject();
-            result.put("cookies", array);
+
+            if (json instanceof JSONArray) {
+                result.put("cookies", json);
+            } else if (json instanceof JSONObject obj && obj.has("cookies")) {
+                result.put("cookies", obj.getJSONArray("cookies"));
+            } else {
+                throw new IOException("Unexpected JSON format in cookies.json");
+            }
+
             return result;
         }
     }
